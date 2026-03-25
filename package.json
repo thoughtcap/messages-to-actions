@@ -19,6 +19,7 @@
   "dependencies": {
     "@mastra/core": "^1.16.0",
     "@mastra/evals": "^1.1.2",
+    "@mastra/langfuse": "^1.0.8",
     "@mastra/libsql": "^1.7.2",
     "@mastra/loggers": "^1.0.3",
     "@mastra/memory": "^1.10.0",
