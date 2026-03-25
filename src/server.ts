@@ -1,3 +1,7 @@
+import "dotenv/config";
+
+import { randomUUID } from "node:crypto";
+
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
@@ -8,6 +12,7 @@ import {
   type HonoVariables,
 } from "@mastra/hono";
 import { mastra } from "./mastra/index";
+import { createTriageTraceContext } from "./lib/triage-tracing";
 import { verifySlackRequest, type SlackMessageEvent } from "./lib/slack";
 
 const app = new Hono<{ Bindings: HonoBindings; Variables: HonoVariables }>();
@@ -107,13 +112,26 @@ interface MessageInput {
 }
 
 async function processMessage(input: MessageInput) {
+  const runId = randomUUID();
   const agent = mastra.getAgentById("triage-agent");
-
   const prompt = buildPrompt(input);
+  const { requestContext, tracingOptions } = createTriageTraceContext(
+    {
+      source: input.source,
+      sender: input.sender,
+      channel: input.channel,
+      metadata: input.metadata,
+    },
+    runId,
+  );
 
-  const response = await agent.generate(prompt);
+  const response = await agent.generate(prompt, {
+    requestContext,
+    tracingOptions,
+  });
 
   return {
+    runId,
     analysis: response.text,
     toolCalls: response.toolCalls,
     toolResults: response.toolResults,
@@ -146,6 +164,19 @@ await server.init();
 // Start
 // ──────────────────────────────────────────────
 const port = parseInt(process.env.PORT || "4111", 10);
+
+async function shutdown(signal: string) {
+  console.log(`\n${signal} received, flushing observability…`);
+  try {
+    await mastra.shutdown();
+  } catch (err) {
+    console.error("Shutdown error:", err);
+  }
+  process.exit(0);
+}
+
+process.once("SIGINT", () => void shutdown("SIGINT"));
+process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
 serve({ fetch: app.fetch, port }, () => {
   console.log(`\n  messages-to-actions running on http://localhost:${port}`);

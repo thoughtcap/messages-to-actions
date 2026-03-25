@@ -2,9 +2,6 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { Client } from "@notionhq/client";
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const databaseId = process.env.NOTION_DATABASE_ID!;
-
 export const addToNotionTool = createTool({
   id: "add-to-notion",
   description:
@@ -41,6 +38,25 @@ export const addToNotionTool = createTool({
     error: z.string().optional(),
   }),
   execute: async (input) => {
+    const apiKey = process.env.NOTION_API_KEY?.trim();
+    const databaseId = process.env.NOTION_DATABASE_ID?.trim();
+    if (!apiKey) {
+      return {
+        success: false,
+        error:
+          "NOTION_API_KEY is missing. Set it in .env (copy from .env.example) and restart the server.",
+      };
+    }
+    if (!databaseId) {
+      return {
+        success: false,
+        error:
+          "NOTION_DATABASE_ID is missing. Use the database ID from your Notion database URL, add it to .env, and restart the server.",
+      };
+    }
+
+    const notion = new Client({ auth: apiKey });
+
     try {
       const properties: Record<string, unknown> = {
         Title: {
