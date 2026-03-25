@@ -1,0 +1,27 @@
+{
+  "name": "messages-to-actions",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "studio": "npx mastra studio"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^1.0.0",
+    "@hono/node-server": "^1.0.0",
+    "@mastra/core": "latest",
+    "@mastra/hono": "latest",
+    "@mastra/langfuse": "latest",
+    "@notionhq/client": "^2.0.0",
+    "hono": "^4.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.6.0"
+  }
+}

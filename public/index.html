@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages → Actions</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0a0a0b;
+        --surface: #141416;
+        --border: #27272a;
+        --text: #fafafa;
+        --text-muted: #a1a1aa;
+        --accent: #6366f1;
+        --accent-hover: #818cf8;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --radius: 12px;
+      }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+      }
+      .container {
+        width: 100%;
+        max-width: 720px;
+      }
+      header {
+        margin-bottom: 2rem;
+      }
+      header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+      }
+      header p {
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        font-size: 0.925rem;
+        line-height: 1.5;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
+      textarea {
+        width: 100%;
+        min-height: 160px;
+        padding: 0.875rem 1rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 0.925rem;
+        font-family: inherit;
+        line-height: 1.6;
+        resize: vertical;
+        transition: border-color 0.15s;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 0.875rem;
+        font-family: inherit;
+        transition: border-color 0.15s;
+      }
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      button {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.925rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+      }
+      button:hover:not(:disabled) {
+        background: var(--accent-hover);
+      }
+      button:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .result {
+        display: none;
+      }
+      .result.visible {
+        display: block;
+      }
+      .result-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-muted);
+      }
+      .status-dot.success {
+        background: var(--success);
+      }
+      .status-dot.error {
+        background: var(--error);
+      }
+      .result-body {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        font-size: 0.875rem;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Messages → Actions</h1>
+        <p>
+          Paste a Slack message (or any message) below. The AI agent will
+          analyze whether it's actionable and, if so, create an entry in your
+          Notion database.
+        </p>
+      </header>
+
+      <div class="card">
+        <label for="message">Message</label>
+        <textarea
+          id="message"
+          placeholder="Paste a message here…"
+          autofocus
+        ></textarea>
+
+        <div class="row">
+          <div>
+            <label for="sender">Sender (optional)</label>
+            <input type="text" id="sender" placeholder="e.g. @jane" />
+          </div>
+          <div>
+            <label for="channel">Channel (optional)</label>
+            <input type="text" id="channel" placeholder="e.g. #engineering" />
+          </div>
+        </div>
+      </div>
+
+      <button id="submit" type="button">Analyze Message</button>
+
+      <div class="result card" id="result">
+        <div class="result-header">
+          <div class="status-dot" id="status-dot"></div>
+          <strong id="result-title">Result</strong>
+        </div>
+        <div class="result-body" id="result-body"></div>
+      </div>
+    </div>
+
+    <script>
+      const btn = document.getElementById("submit");
+      const msgEl = document.getElementById("message");
+      const senderEl = document.getElementById("sender");
+      const channelEl = document.getElementById("channel");
+      const resultEl = document.getElementById("result");
+      const dotEl = document.getElementById("status-dot");
+      const titleEl = document.getElementById("result-title");
+      const bodyEl = document.getElementById("result-body");
+
+      btn.addEventListener("click", async () => {
+        const text = msgEl.value.trim();
+        if (!text) return msgEl.focus();
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Analyzing…';
+        resultEl.classList.remove("visible");
+
+        try {
+          const res = await fetch("/api/triage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text,
+              sender: senderEl.value.trim() || undefined,
+              channel: channelEl.value.trim() || undefined,
+            }),
+          });
+
+          const data = await res.json();
+
+          dotEl.className = "status-dot " + (res.ok ? "success" : "error");
+          titleEl.textContent = res.ok ? "Analysis Complete" : "Error";
+          bodyEl.textContent = res.ok
+            ? data.analysis
+            : data.error || "Something went wrong";
+          resultEl.classList.add("visible");
+        } catch (err) {
+          dotEl.className = "status-dot error";
+          titleEl.textContent = "Error";
+          bodyEl.textContent = err.message;
+          resultEl.classList.add("visible");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Analyze Message";
+        }
+      });
+
+      msgEl.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          btn.click();
+        }
+      });
+    </script>
+  </body>
+</html>
